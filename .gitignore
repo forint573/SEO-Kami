@@ -1,0 +1,32 @@
+# Python bytecode and caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+
+# Packaging and build artifacts
+*.egg-info/
+build/
+dist/
+
+# OS junk
+.DS_Store
+
+# Editor / IDE settings
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Generated audit reports
+reports/
+*.report.md
+*.report.html
