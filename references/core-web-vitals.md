@@ -20,6 +20,8 @@ All claims here are **PROVEN** (Google primary docs / direct measurement) unless
 | INP (Interaction to Next Paint) | <=200ms | <=500ms | >500ms |
 | CLS (Cumulative Layout Shift) | <=0.1 | <=0.25 | >0.25 |
 
+> **On the "LCP lowered to 2.0s" claim (checked 2026-06):** several secondary blogs report Google tightened the "Good" LCP threshold from 2.5s to 2.0s in 2026. This is **NOT confirmed by the primary source** — web.dev still states 2.5s at the 75th percentile. SEO-Kami keeps **2.5s as PROVEN** and treats the 2.0s figure as **SPECULATIVE** until web.dev or Google Search Central says otherwise. (Aiming for &lt;2.0s is good practice regardless; just don't grade against an unconfirmed threshold.)
+
 ## INP replaced FID
 - INP became the official responsiveness Core Web Vital on **2024-03-12**.
 - FID (First Input Delay) was **deprecated 2024-09-09** and is gone. Treat FID only as a historical/deprecated note; do not recommend or report it.

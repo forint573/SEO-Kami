@@ -4,7 +4,7 @@ import sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import seo_common
 from seo_common import Page, Finding, emit, arg_url
-from lib import safe_http, sanitize
+from lib import safe_http
 
 try:
     from urllib.parse import quote
@@ -45,7 +45,7 @@ def _hypothesis(reason):
         title="Core Web Vitals could not be measured automatically",
         severity="info",  # an UNMEASURED metric is not a page defect — never penalize the score for a missing key/quota
         category="perf",
-        evidence=sanitize.wrap_untrusted(reason, "psi_status"),
+        evidence=reason,  # our own status string, not untrusted page content
         impact="Without field (CrUX) data we cannot confirm whether the page passes the LCP/INP/CLS thresholds Google uses as a page-quality input and tiebreaker.",
         fix="Run PageSpeed Insights at https://pagespeed.web.dev for this URL (mobile strategy), or set PAGESPEED_API_KEY to raise the API quota, then re-run this check.",
         confidence="hypothesis",

@@ -2,11 +2,12 @@
 """SEO-Kami orchestrator.
 
 Fetches the page ONCE, runs every audit collector against it, merges and
-de-duplicates the findings (keeping the strongest severity and suppressing a
-claim contradicted by a measured one), and prints a single combined envelope.
+de-duplicates the findings (keeping the strongest severity; via the shared
+seo_common.merge_findings), scores, and prints a single combined envelope — or a
+finished report with --report.
 
 Usage:
-    python3 seo_kami.py https://example.com [--no-cwv] [--no-links]
+    python3 seo_kami.py https://example.com [--report md|html] [--out FILE] [--no-cwv] [--no-links]
 
 Each audit module follows the contract: a module-level
 `collect(url, page=None) -> list[Finding]`. The page-based collectors share one
@@ -18,7 +19,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import seo_common
-from seo_common import Page, Finding, emit, arg_url, SEVERITY_ORDER
+from seo_common import Page, Finding, emit, arg_url
 from lib import safe_http
 
 # (module name, needs the shared Page object)
@@ -33,10 +34,6 @@ PAGE_COLLECTORS = [
 NETWORK_COLLECTORS = [
     ("cwv_check", False),
 ]
-
-
-def _normalize(title: str) -> str:
-    return "".join(ch for ch in (title or "").lower() if ch.isalnum())
 
 
 def _run_collector(modname: str, url: str, page):
@@ -75,17 +72,6 @@ def _skip(modname: str, exc: Exception) -> Finding:
         confidence="confirmed", evidence_tier="proven")
 
 
-def merge(findings):
-    """Dedupe by (id, normalized title); keep the strongest severity."""
-    best = {}
-    for f in findings:
-        key = f"{f.id}|{_normalize(f.title)}"
-        cur = best.get(key)
-        if cur is None or SEVERITY_ORDER.index(f.severity) < SEVERITY_ORDER.index(cur.severity):
-            best[key] = f
-    return list(best.values())
-
-
 def collect_all(url, no_cwv=False, no_links=False):
     try:
         page = Page.fetch(url)
@@ -110,7 +96,7 @@ def collect_all(url, no_cwv=False, no_links=False):
     if not no_cwv:
         for modname, _ in NETWORK_COLLECTORS:
             findings.extend(_run_collector(modname, url, None))
-    return page, merge(findings)
+    return page, seo_common.merge_findings(findings)
 
 
 def _flag(argv, name):
@@ -146,10 +132,12 @@ def main():
 
     # One command to a finished report: collect_all already merges + dedupes, so
     # `--report` renders the deliverable directly — no separate verify/report step.
+    # An un-auditable page (gated) has no meaningful score — report N/A, never a
+    # letter grade that looks like a pass.
+    s = seo_common.score(findings) if auditable else None
+    g = seo_common.grade(s) if auditable else "N/A"
     if report_fmt:
         import report_build
-        s = seo_common.score(findings)
-        g = seo_common.grade(s)
         fdicts = [seo_common.asdict(f) for f in findings]
         md = report_build.build_markdown(meta, s, g, fdicts, date if isinstance(date, str) else "{{date}}")
         content = report_build.md_to_html(md, "SEO-Kami Audit") if str(report_fmt).lower() == "html" else md
@@ -161,7 +149,7 @@ def main():
         else:
             print(content)
     else:
-        emit(findings, meta=meta)
+        emit(findings, meta=meta, scored=auditable)
 
 
 if __name__ == "__main__":

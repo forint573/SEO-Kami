@@ -207,6 +207,39 @@ def test_report_build_normalizes_both_shapes():
     assert "Title here" in md and "Priority" in md
 
 
+def test_title_no_longer_bleeds_into_body():
+    p = Page("https://x/", "<html><head><title>SPA App</title></head><body><div id='root'></div></body></html>")
+    assert p.text == "" and p.word_count == 0, "title must not count as body text"
+
+
+def test_thin_content_spa_finding():
+    import technical_audit
+    shell = "<html><head><title>My App</title></head><body><div id='root'></div><script src='/app.js'></script></body></html>"
+    fs = technical_audit.collect("https://x/", Page("https://x/", shell, headers={"content-type": "text/html"}, status=200))
+    thin = [f for f in fs if f.id == "content-thin"]
+    assert thin and "SPA" in thin[0].title and thin[0].severity == "medium"
+
+
+def test_hreflang_accepts_m49_region():
+    import hreflang_check
+    html = ("<html lang='es'><head><link rel='canonical' href='https://x/es/'>"
+            "<link rel='alternate' hreflang='es' href='https://x/es/'>"
+            "<link rel='alternate' hreflang='es-419' href='https://x/es-419/'>"
+            "<link rel='alternate' hreflang='x-default' href='https://x/'>"
+            "</head><body>x</body></html>")
+    fs = hreflang_check.collect("https://x/es/", Page("https://x/es/", html))
+    assert not any(f.id == "hreflang.malformed_codes" for f in fs), "es-419 (UN M.49) is valid"
+
+
+def test_entity_no_schema_vs_no_sameas():
+    import entity_check
+    # no Organization/Person JSON-LD at all -> schema.missing, not sameas.missing
+    bare = Page("https://x/", "<html><head><title>x</title></head><body>hi</body></html>",
+                headers={"content-type": "text/html"}, status=200)
+    ids = {f.id for f in entity_check.collect("https://x/", bare)}
+    assert "entity.schema.missing" in ids and "entity.sameas.missing" not in ids
+
+
 ALL = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
 
 

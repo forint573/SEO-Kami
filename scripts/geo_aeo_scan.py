@@ -8,9 +8,6 @@ from lib import safe_http, sanitize
 
 _Q_STARTS = ("who", "what", "why", "how", "when", "where", "which", "can", "does", "do", "is", "are", "should", "will")
 _TRUST_DOMAINS = (".gov", ".edu", "wikipedia.org", "who.int")
-_ORG_PERSON = {"organization", "person", "localbusiness", "corporation", "newsmediaorganization"}
-
-
 def _is_question(text):
     t = (text or "").strip()
     if not t:
@@ -24,27 +21,6 @@ def _is_question(text):
 def _origin(url):
     m = re.match(r"^(https?://[^/]+)", url or "")
     return m.group(1) if m else None
-
-
-def _flatten_jsonld(node, out):
-    if isinstance(node, dict):
-        if "@graph" in node and isinstance(node["@graph"], list):
-            for n in node["@graph"]:
-                _flatten_jsonld(n, out)
-        out.append(node)
-        for v in node.values():
-            if isinstance(v, (list, dict)):
-                _flatten_jsonld(v, out)
-    elif isinstance(node, list):
-        for n in node:
-            _flatten_jsonld(n, out)
-
-
-def _types(obj):
-    t = obj.get("@type")
-    if isinstance(t, list):
-        return {str(x).lower() for x in t}
-    return {str(t).lower()} if t else set()
 
 
 def collect(url, page=None):
@@ -64,9 +40,9 @@ def collect(url, page=None):
         findings.append(Finding(
             id="geo_no_question_headings",
             title="No question-shaped headings found",
-            severity="medium", category="aeo",
+            severity="low", category="aeo",  # a nice-to-have for PAA/AEO, not a defect on a normal homepage
             evidence="Scanned %d headings; none start with an interrogative word or end with '?'." % len(headings),
-            impact="Headings that mirror real user questions feed People Also Ask and AI answer extraction; without them the page is harder to lift into an answer.",
+            impact="Headings that mirror real user questions feed People Also Ask and AI answer extraction; without them the page is harder to lift into an answer (optional, not a ranking requirement).",
             fix="Reframe section headings as the exact questions users ask (e.g. 'How do I…', 'What is…'), then place a self-contained answer directly beneath each.",
             confidence="likely", evidence_tier="consensus",
             detail={"heading_count": len(headings)}))
@@ -158,34 +134,8 @@ def collect(url, page=None):
             confidence="likely", evidence_tier="correlated",
             detail={"specific_count": specific_count, "trust_links": len(trust_links)}))
 
-    # (4) Entity: Organization/Person JSON-LD with sameAs
-    objs = []
-    for block in (page.jsonld or []):
-        if isinstance(block, dict) and block.get("_parse_error"):
-            continue
-        _flatten_jsonld(block, objs)
-    entity_objs = [o for o in objs if isinstance(o, dict) and _types(o) & _ORG_PERSON]
-    with_sameas = [o for o in entity_objs if o.get("sameAs")]
-    if not entity_objs or not with_sameas:
-        findings.append(Finding(
-            id="geo_entity_sameas_missing",
-            title="No Organization/Person entity with sameAs",
-            severity="medium", category="entity",
-            evidence="Organization/Person JSON-LD objects=%d; with sameAs=%d." % (len(entity_objs), len(with_sameas)),
-            impact="sameAs links tie your brand/author to authoritative profiles (Wikipedia/Wikidata/socials), strengthening entity disambiguation that drives Knowledge Panels and AI trust.",
-            fix="Add Organization (and Person for authors) JSON-LD with a sameAs array linking official profiles (Wikipedia/Wikidata/LinkedIn/Crunchbase).",
-            confidence="likely", evidence_tier="correlated",
-            detail={"entity_objects": len(entity_objs), "with_sameas": len(with_sameas)}))
-    else:
-        findings.append(Finding(
-            id="geo_entity_sameas_ok",
-            title="Organization/Person entity with sameAs present",
-            severity="info", category="entity",
-            evidence="%d entity object(s) carry a sameAs reference." % len(with_sameas),
-            impact="sameAs aids entity disambiguation for Knowledge Panels and AI trust.",
-            fix="Keep sameAs pointed at authoritative, consistent profiles.",
-            confidence="confirmed", evidence_tier="correlated",
-            detail={"with_sameas": len(with_sameas)}))
+    # (4) Entity/sameAs is owned by entity_check.py (avoids double-penalizing the
+    #     same gap). geo_aeo_scan stays focused on on-page extractability.
 
     # (5) Lists >=3 items and tables (approx from HTML)
     list_items = len(re.findall(r"<li\b", html, re.I))

@@ -3,8 +3,8 @@
 import sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import seo_common
-from seo_common import Page, Finding, emit, arg_url
-from lib import safe_http, sanitize
+from seo_common import Finding, emit
+from lib import sanitize
 
 SEV_ORDER = ["critical", "high", "medium", "low", "info"]
 SEV_LABEL = {

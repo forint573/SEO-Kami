@@ -89,10 +89,11 @@ def collect(url, page=None):
             evidence_tier="consensus",
             detail={"count": len(same_as), "profiles": same_as},
         ))
-    else:
+    elif orgs:
+        # Entity exists but carries no sameAs — the specific, actionable gap.
         findings.append(Finding(
             id="entity.sameas.missing",
-            title="No sameAs links on Organization/Person JSON-LD",
+            title="Organization/Person entity has no sameAs links",
             severity="medium",
             category="entity",
             evidence=f"Found {len(orgs)} Organization/Person/LocalBusiness JSON-LD node(s); none declared a sameAs array.",
@@ -101,6 +102,20 @@ def collect(url, page=None):
             confidence="likely",
             evidence_tier="correlated",
             detail={"orgs_found": len(orgs)},
+        ))
+    else:
+        # No entity schema at all — the upstream gap (frame it as such, not as "no sameAs").
+        findings.append(Finding(
+            id="entity.schema.missing",
+            title="No Organization/Person JSON-LD entity",
+            severity="medium",
+            category="entity",
+            evidence="No Organization/Person/LocalBusiness JSON-LD found on the page.",
+            impact="With no entity markup, search and AI engines have no structured anchor for your brand/author, weakening Knowledge-Panel eligibility and entity disambiguation that drives AI citation.",
+            fix="Add Organization JSON-LD (and Person for authors) with name, url, logo, and a sameAs array linking authoritative profiles (Wikipedia/Wikidata/LinkedIn/Crunchbase).",
+            confidence="confirmed",
+            evidence_tier="correlated",
+            detail={"orgs_found": 0},
         ))
 
     # (2) Brand-name consistency ------------------------------------------

@@ -16,7 +16,7 @@ A path to the audit JSON (the output of the orchestrator `scripts/seo_kami.py` o
 
 1. Run the mechanical pass first:
    `python3 scripts/finding_verifier.py <audit.json>`
-   This dedupes by normalized `id`+`title`, keeps the strongest severity, suppresses findings contradicted by a measured one, and returns `verified_findings` + `suppressed`. Read its output; do not trust it blindly — it catches structure, you catch meaning.
+   This dedupes by normalized `id`+`title`, keeps the strongest severity, and returns re-scored `verified_findings`. It is a purely mechanical merge — it makes no judgments; suppressing/downgrading on the merits is YOUR job below. Read its output to get a clean deduped set, then apply the gates.
 
 2. For each surviving finding, apply these gates in order. A finding must pass all four to survive unchanged.
 

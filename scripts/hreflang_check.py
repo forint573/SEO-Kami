@@ -26,8 +26,10 @@ from seo_common import Page, Finding, emit, arg_url
 from lib import safe_http, sanitize
 
 RECIPROCAL_CAP = 12  # max alternate pages fetched in reciprocity mode
-# valid: "x-default", or ll / ll-RR (ISO 639-1 lang, optional ISO 3166-1 region)
-LANG_RE = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
+# valid: "x-default", or ll / ll-RR — ISO 639-1 lang + optional region that is
+# either an ISO 3166-1 alpha-2 code (en-GB) or a UN M.49 numeric code (es-419).
+# Google supports both; it does NOT use script subtags (zh-Hant) in hreflang.
+LANG_RE = re.compile(r"^[a-z]{2,3}(-(?:[A-Za-z]{2}|[0-9]{3}))?$")
 
 
 def _norm(u):

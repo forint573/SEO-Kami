@@ -26,6 +26,7 @@ Which structured data still earns rich results, which is deprecated, and what ea
 | Breadcrumb | STILL EARNS | Breadcrumb trail in SERP |
 | **FAQPage** | **DEPRECATED ~2026-05-07** | Markup still valid; zero enhancement except authoritative gov/health sites |
 | **HowTo** | **DEPRECATED** | No rich result on any surface |
+| **ClaimReview, SpecialAnnouncement, Vehicle Listing, Course Info, Estimated Salary, Learning Video, Book Actions, Practice Problems** | **DEPRECATED 2025-2026** | Removed in Google's "simplifying search results" effort (rolling Sept 2025 → Jan 2026). Markup stays valid; the specific rich-result display and Search Console reporting are gone, ranking unaffected. PROVEN ([Google blog](https://developers.google.com/search/blog/2025/06/simplifying-search-results)) |
 
 PROVEN. Validity (parses, no errors) is separate from eligibility (earns a visual feature). Deprecated types are still valid markup; they simply no longer render an enhancement.
 

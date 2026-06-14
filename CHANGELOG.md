@@ -2,6 +2,27 @@
 
 All notable changes to SEO-Kami are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-06-15 — Second hardening round
+
+A second adversarial pass (run against redirect chains, SPAs, multilingual sites, IDNs, and error pages) plus fresh primary-source currency checks. More correct, less code, no value lost.
+
+### Added / currency (primary-source verified)
+- **Newly-removed rich-result types flagged.** `schema_check` + `references/schema-2026.md` now know the types Google retired in its "simplifying search results" effort (ClaimReview, SpecialAnnouncement, Vehicle Listing, Course Info, and the Jan-2026 batch) — markup stays valid, no enhancement, ranking unaffected.
+- **LCP-2.0s rumor flagged as unconfirmed.** Several blogs claim Google lowered the "Good" LCP threshold to 2.0s; web.dev still says **2.5s**, so SEO-Kami keeps 2.5s as PROVEN and labels 2.0s SPECULATIVE (a "proven vs hype" note in `references/core-web-vitals.md`).
+- **Thin-content / SPA detection.** A page with almost no server-rendered text (and a SPA root container) now gets a "content may be invisible to crawlers" finding — the most important check for a client-rendered app, previously missing.
+
+### Fixed
+- **Un-auditable pages report `N/A`, not a letter grade.** A gated 403/JSON page used to render a misleading "Score 75 / Grade B"; it now shows `score: null, grade: "N/A"`.
+- **`<title>` no longer bleeds into body text** — fixed a false "concise top-of-page answer" on empty SPA shells (and de-inflated word counts everywhere).
+- **hreflang `es-419` (and other UN M.49 numeric regions) no longer flagged malformed** — this fired on github.com.
+- **sameAs gap no longer double-penalized.** `geo_aeo_scan` and `entity_check` both flagged it; entity ownership is now consolidated in `entity_check`, which also distinguishes "no entity schema" from "entity present but no sameAs."
+- **`geo_no_question_headings` downgraded** to `low` (a homepage having no question headings is normal, not a medium defect).
+
+### Simplified (no capability lost)
+- **Removed the provably-inert contradiction-suppressor** (~70 lines): it never fired once because collectors emit an absence finding XOR a presence finding, never both. `finding_verifier` is now an honest dedupe + re-score.
+- **One shared dedupe** (`seo_common.merge_findings`) replaces the two divergent copies in the orchestrator and verifier.
+- Removed dead helpers and unused imports.
+
 ## [1.2.0] - 2026-06-15 — Simpler & sharper
 
 A correctness + usability pass driven by an adversarial audit that ran the tool against real sites. No new scope — the existing checks are now trustworthy, and the default path is one command.
@@ -52,6 +73,7 @@ First public release. SEO-Kami is a 2026-current SEO/GEO/AEO audit skill where e
 ### Provenance
 This release fuses four prior skills. SEO-Kami is original work — code and references were written from scratch, not copied. It draws on claude-seo (MIT), agentic-seo (MIT), and seo-audit-skill (MIT), and used seo-geo-aeo (no license) as a design reference only. Full attribution is in [NOTICE.md](./NOTICE.md). Licensed MIT (see [LICENSE](./LICENSE)).
 
+[1.3.0]: #130---2026-06-15--second-hardening-round
 [1.2.0]: #120---2026-06-15--simpler--sharper
 [1.1.0]: #110---2026-06-14--strategy--internationalization
 [1.0.0]: #100---2026-06-14--initial-release

@@ -89,6 +89,23 @@ def collect(url, page=None):
             fix="Keep a single <h1> for the page topic; demote the others to <h2>/<h3>.",
             confidence="confirmed", evidence_tier="proven"))
 
+    # --- Thin / client-rendered content (indexability) ---
+    wc = page.word_count
+    if wc < 50:
+        spa = re.search(r'\bid=["\'](root|app|__next|__nuxt|q-app|svelte|gatsby-focus-wrapper)["\']',
+                        page.html or "", re.I)
+        is_spa = bool(spa)
+        findings.append(Finding(
+            "content-thin",
+            "Very little server-rendered text" + (" (likely a client-rendered SPA)" if is_spa else ""),
+            "medium" if is_spa else "low", "technical",
+            evidence=("Rendered HTML has ~%d words of body text" % wc)
+                     + (" and a SPA root container (id=%r)." % spa.group(1) if is_spa else "."),
+            impact="Google and AI crawlers index server-rendered HTML; if the primary content is injected by JavaScript after load, it can be invisible to crawlers and never indexed or cited.",
+            fix="Server-render or pre-render the primary content so it exists in the initial HTML (SSR/SSG/hydration). Verify with 'View Source' (not DevTools) that the main text is present.",
+            confidence="likely" if is_spa else "confirmed", evidence_tier="proven",
+            detail={"word_count": wc, "spa_root": spa.group(1) if is_spa else None}))
+
     # --- Heading order sanity (no skipped levels = minor) ---
     headings = page.headings or []
     levels = [h.get("level") for h in headings if isinstance(h.get("level"), int)]

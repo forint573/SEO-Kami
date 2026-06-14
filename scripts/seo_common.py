@@ -72,14 +72,49 @@ def grade(s: int) -> str:
             else "D" if s >= 40 else "F")
 
 
-def emit(findings: list, meta: Optional[dict] = None) -> None:
-    """Print the standard JSON envelope to stdout."""
+def normalize_title(title: str) -> str:
+    """Lowercase, alphanumerics-only — the stable half of a finding's identity."""
+    return "".join(ch for ch in (title or "").lower() if ch.isalnum())
+
+
+def finding_key(id_, title) -> str:
+    return "%s|%s" % (str(id_).strip().lower(), normalize_title(title))
+
+
+def merge_findings(findings: list) -> list:
+    """Dedupe Finding objects by (id, normalized title): keep the strongest
+    severity, union `detail`, and back-fill empty evidence/impact/fix from the
+    loser. The single dedupe implementation — used by the orchestrator and the
+    verifier so the two can never drift apart."""
+    best = {}
+    for f in findings:
+        k = finding_key(f.id, f.title)
+        cur = best.get(k)
+        if cur is None:
+            best[k] = f
+            continue
+        if SEVERITY_ORDER.index(f.severity) < SEVERITY_ORDER.index(cur.severity):
+            cur.severity = f.severity
+        for kk, vv in (f.detail or {}).items():
+            cur.detail.setdefault(kk, vv)
+        for fld in ("evidence", "impact", "fix"):
+            if not str(getattr(cur, fld, "")).strip() and str(getattr(f, fld, "")).strip():
+                setattr(cur, fld, getattr(f, fld))
+    return list(best.values())
+
+
+def emit(findings: list, meta: Optional[dict] = None, scored: bool = True) -> None:
+    """Print the standard JSON envelope to stdout.
+
+    scored=False (used for un-auditable pages) reports score=null / grade="N/A"
+    instead of a misleading letter grade for a page that was never audited.
+    """
     findings = sorted(findings, key=lambda f: SEVERITY_ORDER.index(f.severity))
-    s = score(findings)
+    s = score(findings) if scored else None
     out = {
         "meta": meta or {},
         "score": s,
-        "grade": grade(s),
+        "grade": grade(s) if scored else "N/A",
         "summary": {sev: sum(1 for f in findings if f.severity == sev) for sev in SEVERITY_ORDER},
         "findings": [asdict(f) for f in findings],
     }
@@ -169,7 +204,9 @@ class _Collector(HTMLParser):
             self._heading_parts.append(data)
         if self._a_href is not None:
             self._a_parts.append(data)
-        if not self._skip_depth:
+        if not self._skip_depth and not self._in_title:
+            # exclude <title> text from body text — otherwise an empty SPA shell's
+            # title leaks into page.text and looks like real on-page content.
             stripped = data.strip()
             if stripped:
                 self.text_parts.append(stripped)

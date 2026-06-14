@@ -14,7 +14,7 @@ description: >-
   from AI-search hype.
 license: MIT
 metadata:
-  version: 1.2.0
+  version: 1.3.0
   homepage: https://github.com/forint573/SEO-Kami
 ---
 
@@ -146,7 +146,7 @@ and print JSON. Run from the `scripts/` directory, e.g.
 | `entity_check.py <url>` | sameAs / author / Organization entity + NAP consistency signals | — |
 | `links_audit.py <url>` | Internal links, anchors, nofollow, broken-link sample | — |
 | `hreflang_check.py <url> [--reciprocal]` | hreflang self-ref / x-default / codes / reciprocity (silent if none) | — |
-| `finding_verifier.py <file.json…>` | Dedupes findings, suppresses ones contradicted by metrics | — |
+| `finding_verifier.py <file.json…>` | Merges + dedupes findings across envelopes, re-scores | — |
 | `report_build.py <audit.json>` | Renders Markdown (+ optional HTML) report from findings | — |
 | `github_seo_audit.py <owner/repo>` | Repo discoverability + README rubric | optional `GITHUB_TOKEN` or `gh` |
 

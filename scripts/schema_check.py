@@ -33,10 +33,18 @@ RECOMMENDED = {
     "Recipe": ["recipeIngredient", "recipeInstructions"],
 }
 
-# Rich-result types removed/unsupported in 2026 (PROVEN). Markup stays valid; no enhancement.
+# Rich-result types removed/unsupported in 2026 (PROVEN — Google's "simplifying
+# search results" effort, 2025-2026). Markup stays valid; no enhancement; does
+# NOT affect ranking. Only types with an unambiguous @type are listed, to avoid
+# false positives on still-valid uses of broad types.
 DEPRECATED_RICH = {
     "FAQPage": "FAQPage rich results removed ~2026-05-07 (still shown only for authoritative gov/health).",
     "HowTo": "HowTo rich results discontinued on all surfaces.",
+    "ClaimReview": "Claim Review rich result removed in Google's 2026 search-results simplification.",
+    "SpecialAnnouncement": "Special Announcement rich result removed in Google's 2026 simplification.",
+    "Vehicle": "Vehicle Listing rich result removed in Google's 2026 simplification.",
+    "Car": "Vehicle Listing rich result removed in Google's 2026 simplification.",
+    "Course": "Course Info rich result removed in Google's 2026 simplification (Course markup itself stays valid).",
 }
 
 
