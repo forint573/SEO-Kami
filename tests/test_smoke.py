@@ -128,9 +128,24 @@ def test_geo_scan_offline_tolerates_no_network():
 def test_collectors_expose_contract():
     import importlib
     for mod in ["technical_audit", "schema_check", "cwv_check", "geo_aeo_scan",
-                "entity_check", "links_audit"]:
+                "entity_check", "links_audit", "hreflang_check"]:
         m = importlib.import_module(mod)
         assert hasattr(m, "collect") and callable(m.collect), f"{mod} must expose collect()"
+
+
+def test_hreflang_check_offline():
+    import hreflang_check
+    # monolingual page (no hreflang) must be silent
+    mono = Page("https://ex.com/", "<html lang='en'><head><title>x</title></head><body>hi</body></html>")
+    assert hreflang_check.collect("https://ex.com/", mono) == [], "no hreflang -> no findings"
+    # broken set: no self-ref, no x-default, conflicting fr targets
+    bad = ("<html lang='en'><head><link rel='canonical' href='https://ex.com/en/'>"
+           "<link rel='alternate' hreflang='fr' href='https://ex.com/fr/'>"
+           "<link rel='alternate' hreflang='fr' href='https://ex.com/fr-ca/'>"
+           "</head><body>x</body></html>")
+    fs = _assert_findings(hreflang_check.collect("https://ex.com/en/", Page("https://ex.com/en/", bad)), "hreflang")
+    ids = {f.id for f in fs}
+    assert "hreflang.no_self_reference" in ids and "hreflang.conflicting_targets" in ids
 
 
 def test_finding_verifier_dedupes(tmp_path=None):

@@ -21,6 +21,7 @@ shared techniques were re-authored for SEO-Kami's architecture.
 | Source | License | Status |
 |---|---|---|
 | [SNLabat/SEO-GEO-AEO-Skill](https://github.com/SNLabat/SEO-GEO-AEO-Skill) | **None declared** (all rights reserved) | Used only as a **design reference**. Its report-design ideas and trigger-phrase craft informed SEO-Kami's *independently written* `references/report-design.md` and SKILL.md description. **No file or text was copied**, because the repository ships no license. |
+| [searchfit/searchfit-seo](https://github.com/searchfit/searchfit-seo) | **None declared** (README claims MIT but ships no LICENSE file → treat as all-rights-reserved) | Used only as a **design reference**. Its prompt-only strategy workflows informed SEO-Kami's *independently written* `references/multilingual-seo.md`, `references/content-strategy.md`, `references/content-brief.md`, and the AI-visibility prompt-audit section of `references/measurement-zero-click.md`. Ideas were re-authored and re-grounded in SEO-Kami's evidence tiers; deprecated/fabrication-prone material (FAQ/HowTo-as-rich-results, Est. Volume/Difficulty columns, SaaS branding) was deliberately dropped. **No file or text was copied.** |
 
 ## Knowledge sources
 

@@ -28,6 +28,7 @@ PAGE_COLLECTORS = [
     ("geo_aeo_scan", True),
     ("entity_check", True),
     ("links_audit", True),
+    ("hreflang_check", True),  # single-page mode; silent when no hreflang declared
 ]
 NETWORK_COLLECTORS = [
     ("cwv_check", False),

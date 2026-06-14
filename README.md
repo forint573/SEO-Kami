@@ -56,7 +56,8 @@ SEO-Kami/
   README.md
   LICENSE                   # MIT
   NOTICE.md                 # attribution to the source skills
-  references/               # 13 evidence-tagged docs (CWV, schema, GEO/AEO, E-E-A-T, ...)
+  references/               # 16 evidence-tagged docs (CWV, schema, GEO/AEO, E-E-A-T,
+                            #   multilingual, content-strategy, content-brief, ...)
   scripts/
     seo_kami.py             # orchestrator
     technical_audit.py
@@ -65,6 +66,7 @@ SEO-Kami/
     geo_aeo_scan.py
     entity_check.py
     links_audit.py
+    hreflang_check.py       # deterministic hreflang / i18n validator
     finding_verifier.py
     report_build.py
     github_seo_audit.py

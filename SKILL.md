@@ -14,7 +14,7 @@ description: >-
   from AI-search hype.
 license: MIT
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   homepage: https://github.com/forint573/SEO-Kami
 ---
 
@@ -43,13 +43,16 @@ eyeballed.
 
 | The task is about… | Read | Run |
 |---|---|---|
-| Indexability, robots, sitemap, canonical, crawl, JS-SEO, hreflang, pagination | `references/technical-foundations.md` | `technical_audit.py`, `links_audit.py` |
+| Indexability, robots, sitemap, canonical, crawl, JS-SEO, pagination | `references/technical-foundations.md` | `technical_audit.py`, `links_audit.py` |
+| Multilingual / international SEO, hreflang, localization, ccTLD vs subdir | `references/multilingual-seo.md` | `hreflang_check.py` |
 | Core Web Vitals (INP / LCP / CLS), page speed | `references/core-web-vitals.md` | `cwv_check.py` |
 | Schema / structured data / rich results | `references/schema-2026.md` | `schema_check.py` |
 | Content quality, E-E-A-T, helpful content | `references/content-eeat.md` | (judgment + `technical_audit.py` signals) |
+| Content strategy, topical authority, keyword clustering, content calendar | `references/content-strategy.md` | — |
+| Content brief for a target query, competitor-gap analysis | `references/content-brief.md` | — |
 | AI search: AI Overviews, ChatGPT, Perplexity, GEO, AEO, answer blocks | `references/geo-aeo.md` | `geo_aeo_scan.py` |
 | Brand mentions, entity, sameAs, digital PR, off-page | `references/entity-earned-media.md` | `entity_check.py` |
-| Measuring success (impressions, AI-citation share, zero-click) | `references/measurement-zero-click.md` | — |
+| Measuring success, zero-click, AI-visibility prompt audit | `references/measurement-zero-click.md` | — |
 | Keyword research without paid tools | `references/keyword-free-signals.md` | — |
 | What's proven vs hype (and why) | `references/evidence-tiers.md` | — |
 | Producing the client-facing report | `references/report-design.md` | `report_build.py` |
@@ -129,6 +132,7 @@ and print JSON. Run from the `scripts/` directory, e.g.
 | `geo_aeo_scan.py <url>` | Answer-block / citability / extractability signals | — |
 | `entity_check.py <url>` | sameAs / author / Organization entity + NAP consistency signals | — |
 | `links_audit.py <url>` | Internal links, anchors, nofollow, broken-link sample | — |
+| `hreflang_check.py <url> [--reciprocal]` | hreflang self-ref / x-default / codes / reciprocity (silent if none) | — |
 | `finding_verifier.py <file.json…>` | Dedupes findings, suppresses ones contradicted by metrics | — |
 | `report_build.py <audit.json>` | Renders Markdown (+ optional HTML) report from findings | — |
 | `github_seo_audit.py <owner/repo>` | Repo discoverability + README rubric | optional `GITHUB_TOKEN` or `gh` |
