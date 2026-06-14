@@ -13,6 +13,9 @@ HEAD_CAP = 12  # politeness cap on broken-link probes
 
 def collect(url, page=None):
     page = page or Page.fetch(url)
+    _gate = seo_common.audit_gate(page)
+    if _gate is not None:
+        return [_gate]
     findings = []
     links = page.links or []
 

@@ -22,6 +22,9 @@ def _q(s, n=120):
 def collect(url, page=None):
     findings = []
     page = page or Page.fetch(url)
+    _gate = seo_common.audit_gate(page)
+    if _gate is not None:
+        return [_gate]
     is_https = urlparse(page.url or url or "").scheme == "https"
 
     # --- Title ---
@@ -37,10 +40,10 @@ def collect(url, page=None):
         tl = len(title.strip())
         if tl > 60:
             findings.append(Finding(
-                "title-too-long", "Title likely truncated in SERPs", "low", "technical",
+                "title-too-long", "Title may be truncated in SERPs", "low", "technical",
                 evidence=f"Title is {tl} characters: \"{_q(title)}\".",
-                impact="Titles over ~60 characters are often truncated in desktop SERPs, hiding the end of the message.",
-                fix="Tighten the title to about 50-60 characters and front-load the primary keyword/intent.",
+                impact="Google truncates titles by rendered pixel width (~580-600px desktop), not character count, so this is a soft signal — a long title of narrow glyphs may fit, a short one of wide caps may not. Front-loading the key message protects against truncation either way.",
+                fix="Front-load the primary keyword/intent so the message survives truncation; ~50-60 characters is a safe rule of thumb.",
                 confidence="likely", evidence_tier="consensus"))
         elif tl < 10:
             findings.append(Finding(
@@ -63,10 +66,10 @@ def collect(url, page=None):
         dl = len(md.strip())
         if dl > 160:
             findings.append(Finding(
-                "meta-desc-too-long", "Meta description likely truncated", "low", "technical",
+                "meta-desc-too-long", "Meta description may be truncated", "low", "technical",
                 evidence=f"Meta description is {dl} characters: \"{_q(md)}\".",
-                impact="Descriptions over ~160 characters get truncated, cutting off the call to action in the snippet.",
-                fix="Trim the description to about 120-160 characters and lead with the key benefit.",
+                impact="Snippets are truncated by pixel width (~920px desktop / shorter on mobile), so ~160 characters is an approximate guide, not a hard cut. Lead with the value so it survives truncation.",
+                fix="Lead with the key benefit; ~120-160 characters is a safe target.",
                 confidence="likely", evidence_tier="consensus"))
 
     # --- H1 ---

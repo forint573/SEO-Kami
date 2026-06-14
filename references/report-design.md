@@ -15,21 +15,27 @@ audit JSON; this file is the spec it follows and the guide for doing it by hand.
 
 ## Inputs and invocation {#inputs}
 
-`report_build.py` accepts either an `emit()` envelope (from any scanner or the
-`seo_kami.py` orchestrator) or `finding_verifier.py` output. Always prefer the
-**verified** set — report what survived adversarial review, not the raw dump.
+**One command (the default).** The orchestrator merges + dedupes and renders the
+report in a single call:
 
 ```
-# verify first, then render
+python3 scripts/seo_kami.py https://example.com --report md --out report.md
+python3 scripts/seo_kami.py https://example.com --report html --out report.html
+```
+
+**Step by step (for debugging or a deeper adversarial pass).** `report_build.py`
+accepts either an `emit()` envelope (from any scanner or the orchestrator) or
+`finding_verifier.py` output:
+
+```
 python3 scripts/seo_kami.py https://example.com > audit.json
-python3 scripts/finding_verifier.py audit.json > verified.json
+python3 scripts/finding_verifier.py audit.json > verified.json   # optional extra pass
 python3 scripts/report_build.py verified.json --format md --out report.md
-python3 scripts/report_build.py verified.json --format html --out report.html
 ```
 
 Output path is always supplied by the caller via `--out` (default: stdout).
 Date is supplied via `--date` or left as a clearly-marked `{{date}}` token — the
-script never bakes in a machine-specific path or a stale session date.
+tools never bake in a machine-specific path or a stale session date.
 
 ## Report structure {#structure}
 

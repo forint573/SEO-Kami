@@ -14,7 +14,7 @@ description: >-
   from AI-search hype.
 license: MIT
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   homepage: https://github.com/forint573/SEO-Kami
 ---
 
@@ -64,8 +64,18 @@ eyeballed.
 
 ## Default workflow (one opinionated path; escape hatch at the end)
 
-For a full audit, follow this order. It is deliberately opinionated — fix the
-foundation before the frontier. Full detail and the copyable checklist are in
+**The one-command path.** For a full site audit, the orchestrator does
+everything — fetch once, run every check, merge/dedupe, score, and render the
+report — in a single call:
+
+```
+python3 scripts/seo_kami.py <url> --report md --out report.md
+```
+
+That is the default. The numbered steps below are the *reasoning order* the
+orchestrator follows (and what to do by hand for a single-dimension request or a
+deeper adversarial pass). It is deliberately opinionated — fix the foundation
+before the frontier. Full detail and the copyable checklist are in
 `references/workflow.md`.
 
 1. **Scope.** Confirm Quick (top issues + scores, ~2 min) vs Full (all
@@ -84,15 +94,18 @@ foundation before the frontier. Full detail and the copyable checklist are in
 7. **GEO/AEO.** Answer-block extractability + citability. (`geo_aeo_scan.py`)
 8. **Entity & earned media.** The highest-leverage AI-visibility work most
    audits skip. (`entity_check.py`)
-9. **Verify findings.** Run `finding_verifier.py` to dedupe and drop any finding
-   contradicted by a measured metric. Do this before reporting. For a deeper,
-   adversarial pass, hand the audit to the `agents/seo-verifier.md` subagent,
-   which re-checks evidence, honest tiers, and concrete fixes.
-10. **Report.** Severity-bucketed, evidence-tagged, with a priority matrix.
-    (`report_build.py`)
+9. **Verify findings.** The orchestrator already merges + dedupes. For a deeper,
+   adversarial pass, hand the audit to the `agents/seo-verifier.md` subagent (or
+   run `finding_verifier.py`) to re-check evidence, honest tiers, and fixes.
+10. **Report.** Severity-bucketed, evidence-tagged, with a priority matrix —
+    produced by the `--report` flag above (or `report_build.py` standalone).
 
 **Escape hatch:** if the user asks for one dimension ("just check my schema"),
 skip straight to that step's reference + script. Don't run the full crawl.
+
+**Unauditable pages.** If a URL returns non-200 or non-HTML, the orchestrator
+stops and emits one honest "not auditable" finding (`meta.auditable: false`) —
+it never fabricates an audit from an error page. Check for bot-blocking/WAF.
 
 ---
 

@@ -50,6 +50,9 @@ def _types(obj):
 def collect(url, page=None):
     findings = []
     page = page or Page.fetch(url)
+    _gate = seo_common.audit_gate(page)
+    if _gate is not None:
+        return [_gate]
     text = page.text or ""
     html = page.html or ""
     headings = page.headings or []
@@ -129,15 +132,18 @@ def collect(url, page=None):
         if href.startswith("http") and not ln.get("internal") and any(d in href for d in _TRUST_DOMAINS):
             trust_links.append(ln["href"])
     specific_count = len(nums) + len(pcts) + len(years) + len(dates)
-    if specific_count < 5 or not trust_links:
+    # Only thin SPECIFICS is a (soft) finding. Lack of .gov/.edu/Wikipedia outbound
+    # links is NOT a penalty — most legitimate pages don't cite those — so it is
+    # reported as context, never as the trigger (it used to fire on nearly every page).
+    if specific_count < 5:
         findings.append(Finding(
             id="geo_low_citable_specifics",
-            title="Few citable specifics / high-trust citations",
-            severity="medium", category="geo",
-            evidence="numbers=%d, percentages=%d, years=%d, ISO-dates=%d; outbound high-trust links (.gov/.edu/wikipedia/who.int)=%d." % (
+            title="Few citable specifics on the page",
+            severity="low", category="geo",
+            evidence="numbers=%d, percentages=%d, years=%d, ISO-dates=%d (outbound high-trust links=%d)." % (
                 len(nums), len(pcts), len(years), len(dates), len(trust_links)),
-            impact="Verifiable specifics (numbers, dated facts, named/authoritative sources) are what AI engines preferentially quote; sparse specifics correlate with lower AI citation share.",
-            fix="Add quotable specifics — exact figures, absolute dates (e.g. 2026-05-07), named studies — and cite high-trust sources (.gov/.edu/Wikipedia/WHO) where relevant.",
+            impact="Verifiable specifics (exact figures, dated facts, named sources) are what AI engines preferentially quote; sparse specifics correlate with lower AI citation share.",
+            fix="Add quotable specifics — exact figures, absolute dates (e.g. 2026-05-07), named studies — where they fit the content.",
             confidence="likely", evidence_tier="correlated",
             detail={"numbers": len(nums), "percentages": len(pcts), "years": len(years),
                     "iso_dates": len(dates), "trust_links": trust_links[:8]}))
@@ -146,9 +152,9 @@ def collect(url, page=None):
             id="geo_citable_specifics_ok",
             title="Citable specifics present",
             severity="info", category="geo",
-            evidence="numbers=%d, percentages=%d, years=%d, high-trust links=%d." % (len(nums), len(pcts), len(years), len(trust_links)),
+            evidence="numbers=%d, percentages=%d, years=%d, high-trust outbound links=%d." % (len(nums), len(pcts), len(years), len(trust_links)),
             impact="Verifiable specifics are preferentially quoted by AI engines.",
-            fix="Keep figures current and dated; attribute to named sources.",
+            fix="Keep figures current and dated; where you cite facts, link the authoritative source.",
             confidence="likely", evidence_tier="correlated",
             detail={"specific_count": specific_count, "trust_links": len(trust_links)}))
 

@@ -44,6 +44,9 @@ def _self_refs(page):
 
 def collect(url, page=None, reciprocal=False):
     page = page or Page.fetch(url)
+    _gate = seo_common.audit_gate(page)
+    if _gate is not None:
+        return [_gate]
     entries = page.hreflang or []
     findings = []
 

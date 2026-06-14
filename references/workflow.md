@@ -8,7 +8,6 @@ Evidence tiers: PROVEN (Google docs / direct measurement), CORRELATED (independe
 - [Copyable checklist](#copyable-checklist)
 - [Validate–fix–repeat loop](#validatefixrepeat-loop)
 - [Escape hatches](#escape-hatches)
-- [Script-to-step map](#script-to-step-map)
 
 ## Scope question (ask once)
 Before crawling, ask one question and stop: **Quick or Full?**
@@ -57,17 +56,10 @@ If the user names a single dimension, skip Scope and run only that step plus its
 - "Am I indexed?" -> step 3 only.
 Always still attach an evidence tier. Always still warn if a named single fix is blocked by a foundation failure (e.g. tuning INP on a noindexed page).
 
-## Script-to-step map
-| Step | Backing script (intended) |
-|---|---|
-| 2 Safe crawl | crawl/fetcher (polite, dual-snapshot) |
-| 3 Indexability | indexability checker (robots/meta/canonical/sitemap/status/parity) |
-| 4 CWV | field/CrUX puller (LCP/INP/CLS at 75th pct) |
-| 5 Schema | JSON-LD validator (rich-result eligibility + deprecation flags) |
-| 6 Content/E-E-A-T | content/author-signal auditor |
-| 7 GEO/AEO | answer-extraction + SERP-feature checker |
-| 8 Entity | entity/NAP/sameAs + mention-coverage checker |
-| 9 Verify | re-runs the step's own validator |
-| 10 Report | report assembler (tiers + visibility metrics) |
-
-Steps 1 and 9 are procedural, not scripted. If a backing script is absent, run the step manually and say so in the report.
+## Backing scripts
+Each step's deterministic check is the script named in SKILL.md's Scripts table
+(`technical_audit.py`, `cwv_check.py`, `schema_check.py`, `geo_aeo_scan.py`,
+`entity_check.py`, `hreflang_check.py`, `links_audit.py`). Steps 1, 6, and 9 are
+mostly judgment — run them by hand and say so in the report. The fastest path is
+the orchestrator: `seo_kami.py <url> --report md --out report.md` runs steps
+2–8 and renders step 10 in one call.

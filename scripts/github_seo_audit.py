@@ -52,18 +52,24 @@ def _readme_text(owner, repo):
     return data.get("content") if isinstance(data.get("content"), str) else None
 
 
-def _rubric(readme):
+def _rubric(readme, repo_description=""):
     """100-point README rubric. Returns (score, list of (label, points, passed))."""
     text = readme or ""
     lines = [l.rstrip() for l in text.splitlines()]
     low = text.lower()
+    top = low[:800]  # the "above the fold" region where a title/logo lives
     checks = []
 
-    has_h1 = any(l.lstrip().startswith("# ") for l in lines) or "<h1" in low
+    # Title can be a markdown '# ', an HTML <h1>, or a centered logo whose <img
+    # carries alt text (a very common high-quality pattern, e.g. awesome lists).
+    has_h1 = (any(l.lstrip().startswith("# ") for l in lines)
+              or "<h1" in low
+              or ("<img" in top and "alt=" in top))
     checks.append(("title/H1", 20, has_h1))
 
-    # A one-line description: a non-heading, non-badge prose line early in the file.
-    one_liner = False
+    # A one-line description: a non-heading, non-badge prose line early in the
+    # file — or, failing that, the repo's own GitHub `description` field.
+    one_liner = bool((repo_description or "").strip())
     for l in lines[:25]:
         s = l.strip()
         if not s or s.startswith(("#", "!", "[!", "<", "---", "===", "```")):
@@ -244,7 +250,7 @@ def collect(owner, repo):
                 "badges, and a license note.",
             confidence="confirmed", evidence_tier="consensus"))
     else:
-        rub_score, checks = _rubric(readme)
+        rub_score, checks = _rubric(readme, desc)
         missing = [(label, pts) for label, pts, ok in checks if not ok]
         evidence_summary = "README rubric score {}/100. ".format(rub_score) + \
             "Present: " + (", ".join(l for l, _, ok in checks if ok) or "none") + ". " + \

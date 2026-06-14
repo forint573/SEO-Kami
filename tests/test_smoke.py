@@ -133,6 +133,32 @@ def test_collectors_expose_contract():
         assert hasattr(m, "collect") and callable(m.collect), f"{mod} must expose collect()"
 
 
+def test_audit_gate():
+    # 200 HTML -> auditable (None)
+    ok = Page("https://x.com/", "<html><body>hi</body></html>",
+              headers={"content-type": "text/html"}, status=200)
+    assert seo_common.audit_gate(ok) is None
+    # 403 -> blocking finding
+    blocked = Page("https://x.com/", "<html><body>Access Denied</body></html>",
+                   headers={"content-type": "text/html"}, status=403)
+    g = seo_common.audit_gate(blocked)
+    assert g is not None and g.id == "page.not_auditable.status" and g.severity == "critical"
+    # non-HTML (JSON API) -> blocking finding
+    jsonp = Page("https://api.x.com/", '{"a":1}', headers={"content-type": "application/json"}, status=200)
+    assert seo_common.audit_gate(jsonp).id == "page.not_auditable.content_type"
+    # a collector must short-circuit to exactly the gate finding on a blocked page
+    import technical_audit
+    fs = technical_audit.collect("https://x.com/", blocked)
+    assert len(fs) == 1 and fs[0].id == "page.not_auditable.status"
+
+
+def test_same_site_prefix_not_charset():
+    # regression: lstrip('www.') stripped a char set, not the prefix
+    assert seo_common._same_site("https://web.com/a", "https://eb.com/b") is False
+    assert seo_common._same_site("https://www.acme.com/", "https://acme.com/x") is True
+    assert seo_common._same_site("https://a.com/", "https://b.com/") is False
+
+
 def test_hreflang_check_offline():
     import hreflang_check
     # monolingual page (no hreflang) must be silent

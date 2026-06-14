@@ -6,8 +6,15 @@ import seo_common
 from seo_common import Page, Finding, emit, arg_url
 from lib import safe_http, sanitize
 
-PHONE_RE = re.compile(r"(?:(?:\+|00)\d{1,3}[\s.\-]?)?(?:\(?\d{2,4}\)?[\s.\-]?){2,4}\d{2,4}")
-# Require a plausible phone: at least 9 digits in the matched run.
+# A phone must START like one: + country code, a (area code), or a 0-led number.
+# This rejects year+stat runs like "2025 99.999" and "99.999% uptime" that the
+# old permissive pattern matched as fake phone "signals".
+PHONE_RE = re.compile(
+    r"(?<![\d.])"
+    r"(?:\+\d{1,3}[\s.\-]+\(?\d{1,4}\)?|\(\d{2,4}\)|0\d{1,4})"
+    r"(?:[\s.\-]+\d{2,4}){1,4}"
+    r"(?![\d%])")
+# Require a plausible phone: 9-15 digits (E.164) in the matched run.
 ADDR_HINT_RE = re.compile(
     r"\b(\d{1,5})\s+[A-Za-zĂÂÎȘȚăâîșț\.\-]+\s+(?:street|st|road|rd|ave|avenue|blvd|boulevard|"
     r"lane|ln|drive|dr|str|strada|str\.|bd|bd\.|bulevardul|calea|șoseaua|soseaua|piața|piata)\b",
@@ -19,7 +26,7 @@ def _phone_candidates(text):
     out = []
     for m in PHONE_RE.finditer(text or ""):
         s = m.group(0).strip()
-        if sum(c.isdigit() for c in s) >= 9:
+        if 9 <= sum(c.isdigit() for c in s) <= 15:
             out.append(s)
         if len(out) >= 3:
             break
@@ -53,6 +60,9 @@ def collect(url, page=None):
     # Never sys.exit() here — SystemExit is not an Exception and would abort the
     # whole audit run instead of skipping this one check.
     page = page or Page.fetch(url)
+    _gate = seo_common.audit_gate(page)
+    if _gate is not None:
+        return [_gate]
 
     orgs = _orgs(page)
 
@@ -95,7 +105,7 @@ def collect(url, page=None):
 
     # (2) Brand-name consistency ------------------------------------------
     title = page.title or ""
-    og_site = (page.og or {}).get("site_name") or (page.og or {}).get("og:site_name")
+    og_site = (page.og or {}).get("site_name")  # Page.og already strips the "og:" prefix
     org_name = None
     for node in orgs:
         n = node.get("name")
@@ -106,40 +116,38 @@ def collect(url, page=None):
     def norm(s):
         return re.sub(r"\s+", " ", (s or "")).strip().lower()
 
-    # Brand as it appears in title: take the segment after common separators.
-    title_brand = title
-    for sep in ("|", "–", "—", "-", "::", "·", "»"):
-        if sep in title:
-            parts = [p.strip() for p in title.split(sep) if p.strip()]
-            if parts:
-                title_brand = parts[-1]
-            break
+    def _match(a, b):  # a appears in b or vice-versa (normalized)
+        na, nb = norm(a), norm(b)
+        return bool(na) and bool(nb) and (na in nb or nb in na)
 
-    candidates = {
-        "title": title_brand,
-        "og:site_name": og_site,
-        "Organization.name": org_name,
-    }
-    present = {k: v for k, v in candidates.items() if v}
-    if len(present) >= 2:
-        normed = {k: norm(v) for k, v in present.items()}
-        # mismatch if no single normalized value is a substring-shared anchor
-        values = list(normed.values())
-        consistent = all(
-            (a in b) or (b in a) for i, a in enumerate(values) for b in values[i + 1:]
-        )
-        if not consistent:
+    # Split the title into every brand-candidate segment, not only the last —
+    # brand-first titles ("Stripe | Financial Infrastructure") are very common,
+    # and matching only the last segment produced constant false mismatches.
+    segs = [title]
+    for sep in ("|", "–", "—", "-", "::", "·", "»", ":"):
+        segs.extend(title.split(sep))
+    segs = [s.strip() for s in segs if s.strip()]
+
+    structured = {k: v for k, v in
+                  (("og:site_name", og_site), ("Organization.name", org_name)) if v}
+    if structured:
+        # A structured brand is "in the title" if it matches the full title or ANY segment.
+        not_in_title = {k: v for k, v in structured.items()
+                        if not any(_match(v, s) for s in segs)}
+        vals = list(structured.values())
+        cross_ok = all(_match(a, b) for i, a in enumerate(vals) for b in vals[i + 1:])
+        if not_in_title or not cross_ok:
             findings.append(Finding(
                 id="entity.brandname.mismatch",
-                title="Brand name differs across title, og:site_name, and Organization.name",
+                title="Brand name is inconsistent across title / og:site_name / Organization.name",
                 severity="low",
                 category="entity",
-                evidence="; ".join(f"{k}={v!r}" for k, v in present.items()),
+                evidence="title=%r; %s" % (title, "; ".join("%s=%r" % (k, v) for k, v in structured.items())),
                 impact="Inconsistent brand naming fragments your entity signal, making it harder for engines to consolidate mentions into one trusted entity.",
-                fix="Pick one canonical brand spelling and use it identically in <title>, og:site_name, and Organization.name (and across the web).",
+                fix="Use one canonical brand spelling identically in <title>, og:site_name, and Organization.name (and across the web); include the brand somewhere in the <title>.",
                 confidence="likely",
                 evidence_tier="consensus",
-                detail={"values": present},
+                detail={"not_in_title": list(not_in_title.keys()), "cross_consistent": cross_ok},
             ))
         else:
             findings.append(Finding(
@@ -147,25 +155,25 @@ def collect(url, page=None):
                 title="Brand name is consistent across available signals",
                 severity="info",
                 category="entity",
-                evidence="; ".join(f"{k}={v!r}" for k, v in present.items()),
+                evidence="; ".join(["title contains the brand"] + ["%s=%r" % (k, v) for k, v in structured.items()]),
                 impact="Consistent naming reinforces a single, unambiguous entity for search and AI engines.",
                 fix="Maintain this consistency across off-site profiles and citations.",
                 confidence="confirmed",
                 evidence_tier="consensus",
-                detail={"values": present},
+                detail={"structured": structured},
             ))
     else:
         findings.append(Finding(
             id="entity.brandname.insufficient",
-            title="Not enough brand-name sources to check consistency",
+            title="No structured brand signal to corroborate the title",
             severity="info",
             category="entity",
-            evidence=f"Found {len(present)} of 3 brand-name signals (title/og:site_name/Organization.name).",
-            impact="Missing og:site_name or Organization.name removes corroborating brand signals that strengthen entity recognition.",
-            fix="Add og:site_name and an Organization JSON-LD with a name matching your <title> brand segment.",
+            evidence="Found no og:site_name or Organization.name to check the <title> brand against.",
+            impact="Missing og:site_name and Organization.name removes corroborating brand signals that strengthen entity recognition.",
+            fix="Add og:site_name and an Organization JSON-LD with a name matching your <title> brand.",
             confidence="likely",
             evidence_tier="consensus",
-            detail={"present": present},
+            detail={"title": title},
         ))
 
     # (3) Authoritative pages ---------------------------------------------
@@ -228,6 +236,14 @@ def collect(url, page=None):
     addr_text_match = ADDR_HINT_RE.search(page.text or "")
     has_address = addr_in_jsonld or bool(addr_text_match)
 
+    # Missing NAP only matters much for an actual local business; many valid sites
+    # (SaaS, blogs, news) legitimately omit it. Penalize accordingly.
+    def _is_localbiz(node):
+        t = node.get("@type")
+        types = t if isinstance(t, list) else [t]
+        return any("localbusiness" in str(x).lower() for x in types if x)
+    has_localbusiness = any(_is_localbiz(n) for n in orgs)
+
     if not (has_phone and has_address):
         miss = []
         if not has_phone:
@@ -237,7 +253,7 @@ def collect(url, page=None):
         findings.append(Finding(
             id="entity.nap.incomplete",
             title=f"NAP incomplete: missing {', '.join(miss)}",
-            severity="medium",
+            severity="medium" if has_localbusiness else "low",
             category="entity",
             evidence=(f"phone={'yes' if has_phone else 'no'} "
                       f"({(phones[0] if phones else (tel_links[0] if tel_links else 'none'))}); "
@@ -272,7 +288,7 @@ def collect(url, page=None):
     findings.append(Finding(
         id="entity.earned_media.recommend",
         title="Invest in earned media / digital PR to drive AI citation",
-        severity="medium",
+        severity="info",  # standing strategic guidance, not a per-page defect — must not penalize the score
         category="entity",
         evidence=("Ahrefs (75,000 brands, Aug 2025): branded web MENTIONS correlate ~0.664 with AI-Overview "
                   "brand visibility vs ~0.218 for backlinks (~3:1). Muck Rack (1M+ AI citations): ~82% from "

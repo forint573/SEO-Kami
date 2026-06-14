@@ -96,6 +96,12 @@ def collect_all(url, no_cwv=False, no_links=False):
         print(json.dumps({"error": "fetch_failed", "detail": str(exc)}))
         sys.exit(2)
 
+    # Gate: if the response isn't a real 200 HTML page, don't audit it — one
+    # honest finding beats a page of fictional ones from a 403/JSON/PDF.
+    gate = seo_common.audit_gate(page)
+    if gate is not None:
+        return page, [gate]
+
     findings = []
     for modname, _ in PAGE_COLLECTORS:
         if no_links and modname == "links_audit":
@@ -107,18 +113,55 @@ def collect_all(url, no_cwv=False, no_links=False):
     return page, merge(findings)
 
 
+def _flag(argv, name):
+    """--name VALUE -> 'VALUE'; bare --name -> True; absent -> None."""
+    if name in argv:
+        i = argv.index(name)
+        if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
+            return argv[i + 1]
+        return True
+    return None
+
+
 def main():
     url = arg_url(sys.argv)
     no_cwv = "--no-cwv" in sys.argv
     no_links = "--no-links" in sys.argv
+    report_fmt = _flag(sys.argv, "--report")
+    if report_fmt is True:
+        report_fmt = "md"
+    out_path = _flag(sys.argv, "--out")
+    date = _flag(sys.argv, "--date") or "{{date}}"
+
     page, findings = collect_all(url, no_cwv=no_cwv, no_links=no_links)
-    emit(findings, meta={
+    auditable = not (len(findings) == 1 and str(findings[0].id).startswith("page.not_auditable"))
+    meta = {
         "url": url,
         "final_url": page.url,
         "status": page.status,
+        "auditable": auditable,
         "tool": "seo-kami orchestrator",
         "checks": [m for m, _ in PAGE_COLLECTORS] + ([] if no_cwv else [m for m, _ in NETWORK_COLLECTORS]),
-    })
+    }
+
+    # One command to a finished report: collect_all already merges + dedupes, so
+    # `--report` renders the deliverable directly — no separate verify/report step.
+    if report_fmt:
+        import report_build
+        s = seo_common.score(findings)
+        g = seo_common.grade(s)
+        fdicts = [seo_common.asdict(f) for f in findings]
+        md = report_build.build_markdown(meta, s, g, fdicts, date if isinstance(date, str) else "{{date}}")
+        content = report_build.md_to_html(md, "SEO-Kami Audit") if str(report_fmt).lower() == "html" else md
+        if isinstance(out_path, str):
+            with open(out_path, "w", encoding="utf-8") as fh:
+                fh.write(content)
+            print(json.dumps({"ok": True, "written": out_path, "format": report_fmt,
+                              "score": s, "grade": g, "findings": len(fdicts)}, ensure_ascii=False))
+        else:
+            print(content)
+    else:
+        emit(findings, meta=meta)
 
 
 if __name__ == "__main__":

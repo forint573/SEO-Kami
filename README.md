@@ -39,14 +39,21 @@ Then invoke it by asking your agent to audit a URL, for example: "Audit https://
 
 ## Quickstart
 
-Run the orchestrator, or a single check, directly:
+One command does the whole audit — fetch, run every check, merge, score, and write the report:
 
 ```
-python3 scripts/seo_kami.py https://example.com
-python3 scripts/technical_audit.py <url>
+python3 scripts/seo_kami.py https://example.com --report md --out report.md
 ```
 
-`seo_kami.py` runs the full pipeline and builds a report. The individual scripts (e.g. `technical_audit.py`, `schema_check.py`, `cwv_check.py`, `geo_aeo_scan.py`, `entity_check.py`, `links_audit.py`) can be run standalone.
+Without `--report` it prints the JSON envelope; add `--no-cwv`/`--no-links` to skip the slower network checks. Any single check also runs standalone:
+
+```
+python3 scripts/seo_kami.py https://example.com            # JSON findings
+python3 scripts/schema_check.py <url>                      # one dimension
+python3 scripts/hreflang_check.py <url> --reciprocal       # i18n, with return-tag check
+```
+
+If a URL returns non-200 or non-HTML, the audit stops with one honest "not auditable" finding rather than inventing results from an error page.
 
 ## Layout
 

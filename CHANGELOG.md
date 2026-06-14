@@ -2,6 +2,22 @@
 
 All notable changes to SEO-Kami are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-06-15 — Simpler & sharper
+
+A correctness + usability pass driven by an adversarial audit that ran the tool against real sites. No new scope — the existing checks are now trustworthy, and the default path is one command.
+
+### Added
+- **One-command audit → report.** `seo_kami.py <url> --report md|html --out report.md` fetches, runs every check, merges, scores, and renders the report in a single call (the old 3-command chain still works for debugging).
+
+### Fixed (effectiveness — these made scores untrustworthy)
+- **Error/non-HTML pages are no longer audited as real pages.** A bot-blocked 403 (or a JSON/PDF response) used to yield a confident 22-finding F-grade audit; it now stops with one honest "not auditable" finding (`meta.auditable: false`). Gates on HTTP status + content-type across every collector.
+- **Removed constant, page-independent score penalties** that dragged every page to a mediocre grade: CWV-unavailable (missing API key) and the standing earned-media recommendation are now `info` (0 pts), not `medium`; the GEO "citable specifics" check no longer penalizes the near-universal absence of .gov/.edu outbound links. Well-built sites now score in the high-80s instead of a flat 67.
+- **`_same_site` host comparison** used `lstrip("www.")`, which stripped a character set, not the prefix (so `web.com` vs `eb.com` matched). Fixed — corrects internal/external link classification used by three collectors.
+- **Brand-name false positives.** The check now matches the brand against every title segment (brand-first titles like "Stripe | …" no longer misfire) and reads `og:site_name` correctly.
+- **Phone-number false positives.** The NAP regex no longer matches stats/years (e.g. "99.999% uptime"); it requires real phone structure (+country, (area), or 0-led). NAP-incomplete is `medium` only when a LocalBusiness schema is present, else `low`.
+- **GitHub README rubric** recognizes HTML/centered-logo titles and the repo `description` field — `sindresorhus/awesome` went from a false 25/100 to 96/100.
+- **Title/meta length** wording reframed as approximate (Google truncates by pixel width, not character count).
+
 ## [1.1.0] - 2026-06-14 — Strategy & internationalization
 
 Adds a plan-and-grow layer on top of the audit-and-optimize core, plus deterministic hreflang validation. The additions came from a file-level audit of the SearchFit SEO plugin: only the genuinely-missing, currency-clean ideas were re-authored in (SearchFit ships no LICENSE, so it was a design reference only — see [NOTICE.md](./NOTICE.md)). Deprecated/fabrication-prone material (FAQ/HowTo-as-rich-results, estimated-volume/difficulty columns, SaaS branding) was deliberately left out.
@@ -36,5 +52,6 @@ First public release. SEO-Kami is a 2026-current SEO/GEO/AEO audit skill where e
 ### Provenance
 This release fuses four prior skills. SEO-Kami is original work — code and references were written from scratch, not copied. It draws on claude-seo (MIT), agentic-seo (MIT), and seo-audit-skill (MIT), and used seo-geo-aeo (no license) as a design reference only. Full attribution is in [NOTICE.md](./NOTICE.md). Licensed MIT (see [LICENSE](./LICENSE)).
 
+[1.2.0]: #120---2026-06-15--simpler--sharper
 [1.1.0]: #110---2026-06-14--strategy--internationalization
 [1.0.0]: #100---2026-06-14--initial-release

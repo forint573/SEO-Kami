@@ -43,7 +43,7 @@ def _hypothesis(reason):
     return Finding(
         id="cwv_psi_unavailable",
         title="Core Web Vitals could not be measured automatically",
-        severity="medium",
+        severity="info",  # an UNMEASURED metric is not a page defect — never penalize the score for a missing key/quota
         category="perf",
         evidence=sanitize.wrap_untrusted(reason, "psi_status"),
         impact="Without field (CrUX) data we cannot confirm whether the page passes the LCP/INP/CLS thresholds Google uses as a page-quality input and tiebreaker.",

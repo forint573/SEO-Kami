@@ -292,12 +292,48 @@ class Page:
         return len([w for w in re.split(r"\s+", self.text) if w])
 
 
+def _strip_www(host: str) -> str:
+    # NB: NOT host.lstrip("www.") — that strips any leading chars in {w,.},
+    # so "web.com" -> "eb.com". Strip the exact prefix only.
+    return host[4:] if host.startswith("www.") else host
+
+
 def _same_site(base: str, other: str) -> bool:
     try:
-        b, o = urlparse(base).netloc.lower(), urlparse(other).netloc.lower()
-        return b.split(":")[0].lstrip("www.") == o.split(":")[0].lstrip("www.")
+        b = _strip_www(urlparse(base).netloc.lower().split(":")[0])
+        o = _strip_www(urlparse(other).netloc.lower().split(":")[0])
+        return bool(b) and b == o
     except Exception:
         return False
+
+
+def audit_gate(page) -> Optional["Finding"]:
+    """Return a blocking Finding if `page` is not a real, auditable HTML page.
+
+    Auditing an error page (403/404/5xx) or a non-HTML response (JSON API, PDF)
+    as if it were a normal page produces confident, fictional findings — the
+    fastest way to lose trust in the tool. Collectors call this first and stop
+    if it returns a Finding. Returns None when the page is fine to audit.
+    """
+    status = getattr(page, "status", None)
+    if status is not None and not (200 <= status < 300):
+        return Finding(
+            id="page.not_auditable.status", title="Page did not return HTTP 200 — not auditable",
+            severity="critical", category="technical",
+            evidence="Fetched %s returned HTTP %s." % (getattr(page, "url", "?"), status),
+            impact="The on-page audit was skipped: a non-200 response (block, redirect loop, error, or down page) is not the live page, so auditing it would produce fictional findings.",
+            fix="Ensure the URL returns 200 to crawlers (check bot-blocking/WAF, auth walls, and the correct canonical URL), then re-run.",
+            confidence="confirmed", evidence_tier="proven", detail={"status": status})
+    ctype = (getattr(page, "headers", {}) or {}).get("content-type", "")
+    if ctype and "html" not in ctype.lower() and "xml" not in ctype.lower():
+        return Finding(
+            id="page.not_auditable.content_type", title="Response is not HTML — not auditable as a page",
+            severity="high", category="technical",
+            evidence="Content-Type is %r, not text/html." % ctype.split(";")[0].strip(),
+            impact="The on-page audit was skipped: this is a non-HTML resource (e.g. JSON API, PDF, image), so page-level SEO checks do not apply.",
+            fix="Point the audit at an HTML page (the document URL), not an API endpoint or asset.",
+            confidence="confirmed", evidence_tier="proven", detail={"content_type": ctype})
+    return None
 
 
 def arg_url(argv: list, default: Optional[str] = None) -> str:
