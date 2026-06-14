@@ -1,8 +1,9 @@
 # NOTICE — attribution & provenance
 
-SEO-Kami is an original fusion skill. It re-implements and adapts ideas from
-four prior open-source SEO skills. This file records what was borrowed and the
-terms, so the provenance is honest and the licensing is clean.
+SEO-Kami (神) is an original fusion skill, © 2026 **MEGZO_tech**, released under
+the MIT License (see [LICENSE](./LICENSE)). It re-implements and adapts ideas
+from four prior open-source SEO skills. This file records what was borrowed and
+the terms, so the provenance is honest and the licensing is clean.
 
 ## Adapted from (MIT — compatible, attribution preserved)
 

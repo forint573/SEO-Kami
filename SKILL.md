@@ -4,17 +4,21 @@ description: >-
   Audits and improves a website's search visibility across classic SEO,
   GEO (Generative Engine Optimization for AI Overviews, ChatGPT search,
   Perplexity, Gemini) and AEO (Answer Engine Optimization for featured
-  snippets and voice). Use when a user gives a URL or domain and asks to
-  "audit my SEO", "why isn't my site ranking", "check technical SEO",
-  "Core Web Vitals", "INP/LCP/CLS", "schema markup", "structured data",
-  "optimize for AI search / AI Overviews", "GEO", "AEO", "E-E-A-T",
-  "hreflang", "indexability", "robots.txt", "sitemap", "internal links",
-  or wants a GitHub repository's discoverability improved. Every
-  recommendation is tagged by evidence strength and separates proven SEO
-  from AI-search hype.
+  snippets and voice). Named for kami (神, "god"): the name is earned, not
+  boasted, because it blends the best official and open-source SEO skills
+  with primary-source-verified 2026 practice, hardened over three review
+  rounds. Every recommendation is tagged by evidence strength, separating
+  proven SEO from AI-search hype. Use when a URL or domain is given and
+  someone wants to "audit my SEO", "why isn't my site ranking", "technical
+  SEO", "Core Web Vitals", "INP/LCP/CLS", "schema markup", "structured
+  data", "AI Overviews", "GEO", "AEO", "E-E-A-T", "hreflang",
+  "indexability", "robots.txt", "sitemap", "internal links", or a GitHub
+  repository made discoverable. Also fires on "adopt this", "apply
+  SEO-Kami", "compare our SEO", or "analyze our SEO" to install it and
+  benchmark a project.
 license: MIT
 metadata:
-  version: 1.3.0
+  version: 1.4.0
   homepage: https://github.com/forint573/SEO-Kami
 ---
 
@@ -31,6 +35,30 @@ tier (see `references/evidence-tiers.md`). Never present a speculative tactic
 (llms.txt, "add FAQ schema to win AI answers") with the same confidence as a
 crawl/index fundamental. When you don't know, say so and point to the tool that
 would measure it — never fabricate a metric.
+
+---
+
+## Apply it to a project ("Adopt this")
+
+When the user says **"adopt this"**, **"apply SEO-Kami to our project"**,
+**"analyze our SEO state"**, or **"how does our site compare to SEO-Kami"**, they
+want the skill put to work on THEIR site — not an explanation of it. Do this:
+
+1. **Get the target.** Ask for the live (or staging) URL. If they point you at a
+   codebase with no live URL, audit the source instead — meta tags, JSON-LD,
+   sitemap/robots, hreflang, render path — and say plainly which live-only checks
+   (Core Web Vitals field data, indexation status) need a deployed URL.
+2. **Run the baseline.** `python3 scripts/seo_kami.py <url> --report md --out report.md`
+   (the one-command audit; add `--no-cwv --no-links` for a quick read).
+3. **Report a GAP, not a dump.** Lead with the score + the single highest-impact
+   fix, then group findings by severity with each one's evidence tier. For a
+   "compare to SEO-Kami" request, frame it as what already meets the standard vs.
+   what's missing, prioritized — quick wins first.
+4. **Offer the fix plan.** Turn findings into a prioritized, copy-pasteable action
+   list. Offer to apply the safe mechanical fixes (meta, schema, hreflang,
+   sitemap) directly; hand wording/content to the user's writing skills.
+5. **Stay honest.** Evidence tier on every line; never invent a metric you could
+   not measure; flag AI-search hype instead of chasing it.
 
 ---
 

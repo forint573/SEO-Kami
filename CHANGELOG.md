@@ -2,6 +2,18 @@
 
 All notable changes to SEO-Kami are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/); this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-06-15 — Branding & one-line adoption
+
+Identity and onboarding, no behavioural change to the checks.
+
+### Added
+- **"Adopt this" workflow.** SKILL.md now has an *Apply it to a project* section, so "adopt this", "apply SEO-Kami to our project", "analyze our SEO state", or "how does our site compare to SEO-Kami" make the skill audit the user's own site and return a prioritized, evidence-tagged gap report — not an explanation of itself.
+- **Paste-and-go adoption block** at the top of the README: install in one line, then a single sentence ("Adopt this." / "Analyze our SEO state compared to SEO-Kami.") puts it to work on your project.
+
+### Changed
+- **Branding.** The skill now wears its name: *kami* (神) is Japanese for "god", and the description/README lean into "the God of SEO skills — earned, not boasted" (it blends the best official + open-source skills with primary-source-verified 2026 practice over three hardening rounds). The description stays a functional trigger — all keyword triggers preserved, third person, under the 1024-char limit, plus the new "adopt/compare/analyze" triggers.
+- **License holder** is now **MEGZO_tech** (MIT, unchanged terms). See [LICENSE](./LICENSE) and [NOTICE.md](./NOTICE.md).
+
 ## [1.3.0] - 2026-06-15 — Second hardening round
 
 A second adversarial pass (run against redirect chains, SPAs, multilingual sites, IDNs, and error pages) plus fresh primary-source currency checks. More correct, less code, no value lost.
@@ -73,6 +85,7 @@ First public release. SEO-Kami is a 2026-current SEO/GEO/AEO audit skill where e
 ### Provenance
 This release fuses four prior skills. SEO-Kami is original work — code and references were written from scratch, not copied. It draws on claude-seo (MIT), agentic-seo (MIT), and seo-audit-skill (MIT), and used seo-geo-aeo (no license) as a design reference only. Full attribution is in [NOTICE.md](./NOTICE.md). Licensed MIT (see [LICENSE](./LICENSE)).
 
+[1.4.0]: #140---2026-06-15--branding--one-line-adoption
 [1.3.0]: #130---2026-06-15--second-hardening-round
 [1.2.0]: #120---2026-06-15--simpler--sharper
 [1.1.0]: #110---2026-06-14--strategy--internationalization

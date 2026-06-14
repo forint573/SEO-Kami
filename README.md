@@ -1,6 +1,27 @@
-# SEO-Kami
+# SEO-Kami 神
 
-SEO-Kami is a current (2026), evidence-tagged SEO/GEO/AEO Agent Skill. It audits a URL and returns recommendations where every claim carries an evidence tier — PROVEN (Google primary docs or direct measurement), CORRELATED (independent studies, correlation not causation), CONSENSUS (practitioner agreement), or SPECULATIVE (unproven/emerging). It fuses the working parts of four open-source SEO skills and fixes their shared blind spot: they conflate proven fundamentals with hype, and they underweight what actually moves AI-engine citation — brand entity strength and earned media, not backlinks. SEO-Kami separates proven from hype on every line, and weights mentions over links the way the 2025 data does (Ahrefs: branded mentions correlate ~0.664 with AI-Overview visibility vs ~0.218 for backlinks).
+> *The God of SEO skills — earned, not boasted.*
+
+SEO-Kami is a current (2026), evidence-tagged SEO/GEO/AEO Agent Skill. The name is earned, not boasted: it blends the working parts of the best open-source SEO skills, re-verifies every volatile fact against primary 2025–2026 sources, and passes the whole through three hardening rounds — so it ships fundamentals and frontier in one audit without confusing the two. Every line it returns carries an evidence tier — PROVEN, CORRELATED, CONSENSUS, or SPECULATIVE — so proven SEO never wears the same robes as AI-search hype. The godlike part isn't a ranking promise; it's the refusal to present a metric it didn't measure, or to sell a tactic the data can't back.
+
+## Adopt SEO-Kami (神)
+
+Already have the skill, or can your agent see this repo? Drop it in, then paste any one-liner below. Your agent installs it, reads `SKILL.md`, routes to the right checks, and answers with every finding tagged by evidence tier — proven SEO separated from AI-search hype.
+
+**Install (one line):**
+
+```bash
+cp -R SEO-Kami ~/.claude/skills/seo-kami
+```
+
+**Then paste one of these:**
+
+- `Adopt this.` — installs SEO-Kami and runs a baseline audit on our project, no extra setup.
+- `Analyze our SEO state compared to SEO-Kami.` — gap report measuring our site against the skill's evidence-tagged standards.
+- `Audit https://our-url.com with SEO-Kami and give me a prioritized fix plan.` — full SEO/GEO/AEO crawl, scored, with the highest-leverage fixes first.
+- `Compare our SEO to SEO-Kami and flag anything that's hype, not proven.` — same audit, but it calls out every SPECULATIVE tactic instead of selling it.
+
+Every line that comes back is tiered — PROVEN, CORRELATED, CONSENSUS, or SPECULATIVE — so you always know what's earned and what's a bet. No paid API keys required; optional `PAGESPEED_API_KEY` and `GITHUB_TOKEN` just unlock field data and higher rate limits. MIT-licensed by **MEGZO_tech**.
 
 ## Why it exists / the fusion
 
