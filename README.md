@@ -1,5 +1,7 @@
 # SEO-Kami 神
 
+(agent built stuff)
+
 > *The God of SEO skills — earned, not boasted.*
 
 SEO-Kami is a current (2026), evidence-tagged SEO/GEO/AEO Agent Skill. The name is earned, not boasted: it blends the working parts of the best open-source SEO skills, re-verifies every volatile fact against primary 2025–2026 sources, and passes the whole through three hardening rounds — so it ships fundamentals and frontier in one audit without confusing the two. Every line it returns carries an evidence tier — PROVEN, CORRELATED, CONSENSUS, or SPECULATIVE — so proven SEO never wears the same robes as AI-search hype. The godlike part isn't a ranking promise; it's the refusal to present a metric it didn't measure, or to sell a tactic the data can't back.
